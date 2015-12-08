@@ -1,235 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>getUserMedia()</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-
+	<meta charset="UTF-8">
+	<title>Warhol Cam</title>
+	<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-  <div class="flash"></div>
+	
+		<div class="flash"></div>
 
-  <div class="photoBooth clearfix">
-    <video class="webcam"></video>
-    <canvas class="fourFilters" width="640" height="480"></canvas>
-    <form>
-      <input type="range" class="slider" name="slider" min="75" max="125">
-    </form>
-    <canvas class="original" width="640" height="480"></canvas>
-    <canvas class="canvasOne"></canvas>
-    <canvas class="canvasTwo"></canvas>
-    <canvas class="canvasThree"></canvas>
-    <canvas class="canvasFour"></canvas>
-    <canvas class="snapShot"></canvas>
-    
-    <div class="countdown"></div>
-    <div class="tools">
-      <a href="#" class="snap" data-wait="0"><i class="fa fa-camera"></i></a>
-      <a href="#" class="snap" data-wait="4000">
-        4 <i class="fa fa-clock-o"></i>
-      </a>
-      <a href="#" class="flip"><i class="fa fa-refresh"></i></a>
-    </div>
-    <div class="strip"></div>
-  </div>
+		<div class="photoBooth">
+		  <video class="webcam"></video>
+		  <canvas class="original" width="320" height="240"></canvas>
+		  <canvas class="first" width="320" height="240"></canvas>
+		  <canvas class="second" width="320" height="240"></canvas>
+		  <canvas class="third" width="320" height="240"></canvas>
+		  <canvas class="fourth" width="320" height="240"></canvas>
+		  <canvas class="photo" width="640" height="480"></canvas>
+		  <form>
+		    <input type="range" class="slider" name="slider" min="75" max="125">
+		  </form>
+		  <div class="countdown"></div>
+		  <div class="tools">
+		    <a href="#" class="snap" data-wait="0"><i class="fa fa-camera"></i></a>
+		    <a href="#" class="snap" data-wait="4000">
+		      4 <i class="fa fa-clock-o"></i>
+		    </a>
+		  </div>
+		  <div class="strip"></div>
+		</div>
+		
+		<div class="trash">
+		  <i class="fa fa-trash-o"></i>
+		</div>
 
-  
-  <div class="trash">
-    <i class="fa fa-trash-o"></i>
-  </div>
-
-  <audio class="cameraSound" src="snap.mp3"></audio>
+		<audio class="cameraSound" src="snap.mp3"></audio>
 
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+		<script src="app.js"></script>
 
-  <script>
-    app = {};
-
-    // grab the video element with jQuery
-    app.video = $('video.webcam')[0];
-    // grab the final displayed canvas with jquery 
-    app.fourFilters = $('canvas.fourFilters')[0];
-    // grab the filtered canvas with jquery
-    app.original = $('canvas.original')[0];
-    //grab the snapShot w/ jquery
-    app.snapShot = $('canvas.snapShot')[0];
-    //set context
-    ctx = app.ctx,
-    //get slider value
-    app.slider = $('.slider').val();
-
-    $('.slider').on('change mousemove' ,function(){
-      app.slider= this.value;
-    });
-
-    app.getVideo = function() {
-
-      // normalize so it works on all browsers in the future all browsers will get navigator.getUserMedia()
-      navigator.getUserMedia = ( navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
-
-      navigator.getUserMedia ({ video: true,  audio: false }, function(localMediaStream) {
-        // set the video source
-        app.video.src = window.URL.createObjectURL(localMediaStream);
-        // play the video!
-        app.video.play();
-
-        setInterval(app.drawVideo,30);
-
-      },
-
-
-      // errorCallback
-      function(err) {
-        console.log("The following error occured: " + err);
-     });
-    };
-
-    app.warholize = function(pixels,r1,g1,b1,r2,g2,b2) {
-      for (i = 0; i < app.pixels.data.length; i=i+4) {
-            var r = app.pixels.data[i];
-            var g = app.pixels.data[i+1];
-            var b = app.pixels.data[i+2];
-            var v = (0.1126*r + 0.7152*g + 0.0722*b >= app.slider) ? 255 : 0;
-            app.pixels.data[i] = app.pixels.data[i+1] = app.pixels.data[i+2] = v;
-      };
-          for (i = 0; i < app.pixels.data.length; i=i+4) {
-            red = app.pixels.data[i + 0];
-            green = app.pixels.data[i + 1];
-            blue = app.pixels.data[i + 2];
-            alpha = app.pixels.data[i + 3];
-            if (red >= 255 && green >= 255 && blue >= 255) {
-              app.pixels.data[i + 0] = r1;
-              app.pixels.data[i + 1] = g1;
-              app.pixels.data[i + 2] = b1;
-            }
-            else  {
-              app.pixels.data[i + 0] = r2;
-              app.pixels.data[i + 1] = g2;
-              app.pixels.data[i + 2] = b2;
-            }
-      };
-      return pixels;
-    };
-
-    app.drawVideo = function(){
-      var width = $(app.video).width();
-      var height = $(app.video).height();
-      app.original.width = width;
-      app.original.height = height;
-      var ctx = app.original.getContext('2d');
-      var ctxFourFilters = app.fourFilters.getContext('2d');
-      ctx.drawImage(app.video, 0, 0, 320, 240);
-      app.pixels = ctx.getImageData(0,0,app.original.width,app.original.height);
-      app.color1pixels = app.warholize(app.pixels,4,121,234,236,2,123); // make a pink/ blue copy
-      ctxFourFilters.putImageData(app.color1pixels,0,0);
-      app.color2pixels = app.warholize(app.pixels,238,134,9,125,66,146); // make a orange/ purple copy
-      ctxFourFilters.putImageData(app.color2pixels,320,0);
-      app.color3pixels = app.warholize(app.pixels,255,249,7,140,178,30); // make a yellow/ green copy
-      ctxFourFilters.putImageData(app.color3pixels,0,240);
-      app.color4pixels = app.warholize(app.pixels,232,6,28,41,31,128); // make a red/ blue copy
-      ctxFourFilters.putImageData(app.color4pixels,320,240);
-      
-
-    };//end of draw video  
-
-
-
-    app.takePhoto = function() {
-      /* The next four lines set the canvas to the same size as the video */
-      var width = $(app.video).width();
-      var height = $(app.video).height();
-      app.snapShot.width = width;
-      app.snapShot.height = height;
-
-      // 5. Then we "draw" the video (one frame) to the canvas
-      app.snapShot.getContext('2d').drawImage(app.fourFilters, 0, 0, width, height);
-      
-      // 6. Then we convert that canvas to a "data blob"  which is like an image src
-      var data = app.snapShot.toDataURL('image/png');
-
-      // flash the screen
-      $('.flash').show().fadeOut(250);
-      
-      // 1. create an image 2. set the source the be the data 3. append to an element
-      var img = $('<img>').attr('src',data);
-      var link = $("<a>").attr("download","so-good-looking").attr("href",data);
-      img.appendTo(link);
-      link.appendTo('.strip');
-
-      // make it draggable
-      $('.strip img').draggable();
-
-    };
-
-    app.playCameraSounds = function() {
-      var audio = $('audio.cameraSound')[0];
-      audio.currentTime = 0;
-      audio.play();
-    };
-
-    
-    $(function() {
-      // start by getting the video
-      app.getVideo();
-
-      $('a.snap').on('click',function(e) {
-        e.preventDefault();
-        // find the wait time
-        var waitTime = $(this).data('wait');
-        var waitedTime = 0;
-
-        // if there is no wait, then just take it
-        if(!waitTime) {
-          app.takePhoto();
-          app.playCameraSounds();
-          return; // stop the rest from running          
-        }
-
-        // set a timeout to take the photo after X seconds
-        setTimeout(function(){
-          app.takePhoto();
-          app.playCameraSounds();
-        },waitTime);
-
-        $('.countdown').text(waitTime / 1000).show();
-
-        var interval = setInterval(function(){
-          waitedTime+= 1000;
-          var timeLeft = (waitTime - waitedTime) / 1000;
-          $('.countdown').text(timeLeft);
-          if(waitedTime >= waitTime) {
-            clearInterval(interval);
-            $('.countdown').hide();
-          }
-        },1000);
-
-
-
-      });
-
-      $('a.flip').on('click',function(e) {
-        e.preventDefault();
-        $(app.video).toggleClass('flipped');
-      });
-
-      // hook up the trash
-      $( ".trash" ).droppable({
-          accept: ".strip img",
-          hoverClass: "trash-hover",
-          drop: function( event, ui ) {
-            // grab the first item from the draggable UI and remove it
-            $(ui.draggable[0]).remove();
-          }
-        });
-
-
-
-    });
-
-  </script>
 </body>
 </html>
